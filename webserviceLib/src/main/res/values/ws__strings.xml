@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- 公共 -->
+    <string name="progress_message">正在加载，请稍候</string>
+    <string name="request_progress_message">正在处理请求</string>
+    <string name="network_conntect_fail_msg">当前无网络，请设置网络连接</string>
+    <string name="request_timeout_msg">请求超时，请重试</string>
+    <string name="request_connect_error_msg">连接异常，请检查网络配置或服务器</string>
+    <string name="request_server_error_msg">系统错误，请重试</string>
+    <string name="request_server_busy_msg">服务器忙，请重试</string>
+    <string name="request_parse_error_msg">解析错误，请重试</string>
+    <string name="request_illegal_char_msg">存在非法字符，请重新输入</string>
+    <string name="request_nodata_msg">暂无数据</string>
+    <string name="request_no_match_data_msg">没有符合条件的数据</string>
+    <string name="load_more_text">点击加载更多</string>
+    <string name="search_text">查询</string>
+    <string name="ok_text">确认</string>
+    <string name="cancel_text">取消</string>
+    <string name="clean_text">清空</string>
+    <string name="complete_text">完成</string>
+    <string name="crash_error_exit">抱歉！程序出现异常，即将退出，请将错误报告给开发者。</string>
+    <string name="exception_nofound_app">没有找到应用打开该类型的文件</string>
+
+</resources>

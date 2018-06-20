@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">WebserviceTest</string>
+    <string name="start_request">开始请求</string>
+</resources>
