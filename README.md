@@ -1,0 +1,1 @@
+一个利用运行时反射注解实现Webservice请求时参数封装和数据解析的库，见webserviceLib文件夹，app文件夹是demo。
