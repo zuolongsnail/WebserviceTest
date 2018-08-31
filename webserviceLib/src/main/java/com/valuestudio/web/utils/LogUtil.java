@@ -19,13 +19,13 @@ import java.util.Date;
  */
 public class LogUtil {
     /**
+     * TAG
+     */
+    public static String TAG = "valuestudio";
+    /**
      * 保存日志的文件名
      */
     public static String LOG_FILE_NAME = "valuestudio.log";
-    /**
-     * 是否打印日志
-     */
-    public static boolean isDebug = true;
     /**
      * 是否保存到文件
      */

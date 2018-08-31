@@ -10,6 +10,7 @@ import com.valuestudio.web.R;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ksoap2.transport.HttpTransportSE;
 
 /**
  * 请求基类
@@ -34,6 +35,8 @@ public abstract class BasicRequest {
 
     /**
      * 列表解析类型，对应的返回数据必须严格按照以下格式：
+     * <ul>
+     * <li>请求成功：
      * {
      *     "success":"true",
      *     "message":{
@@ -41,14 +44,26 @@ public abstract class BasicRequest {
      *             {
      *                 "data1":"数据字段1",
      *                 "data2":"数据字段2"
+     *             },
+     *             {
+     *                 "data1":"数据字段1",
+     *                 "data2":"数据字段2"
      *             }
      *         ]
      *     }
      * }
+     * <li>请求失败或错误：
+     * {
+     *     "success":"false",
+     *     "message":"失败或错误信息"
+     * }
+     * </ul>
      */
     public static final int LIST_PARSE_TYPE = 1;
     /**
      * 对象解析类型，对应的返回数据必须严格按照以下格式：
+     * <ul>
+     * <li>请求成功：
      * {
      *     "success":"true",
      *     "message":{
@@ -56,26 +71,52 @@ public abstract class BasicRequest {
      *         "data2":"数据字段2"
      *     }
      * }
+     * <li>请求失败或错误：
+     * {
+     *     "success":"false",
+     *     "message":"失败或错误信息"
+     * }
+     * </ul>
      */
     public static final int OBJECT_PARSE_TYPE = 2;
     /**
      * JSON解析类型，对应的返回数据必须严格按照以下格式：
+     * <ul>
+     * <li>请求成功：
      * {
      *     "success":"true",
      *     "message":{
-     *         包含任何数据格式
+     *         可以包含任何JSON数据格式
      *     }
      * }
+     * <li>请求失败或错误：
+     * {
+     *     "success":"false",
+     *     "message":"失败或错误信息"
+     * }
+     * </ul>
      */
     public static final int JSON_PARSE_TYPE = 3;
     /**
      * 结果解析类型，对应的返回数据必须严格按照以下格式：
+     * <ul>
+     * <li>请求成功：
      * {
-     *     "success":"true/false",
+     *     "success":"true",
      *     "message":"请求响应信息"
      * }
+     * <li>请求失败或错误：
+     * {
+     *     "success":"false",
+     *     "message":"失败或错误信息"
+     * }
+     * </ul>
      */
     public static final int RESULT_PARSE_TYPE = 4;
+    /**
+     * HttpTransportsSE对象
+     */
+    protected static HttpTransportSE mHttpTransportSE;
 
     /**
      * 上下文
@@ -106,6 +147,15 @@ public abstract class BasicRequest {
      */
     protected String method;
 
+    public static synchronized HttpTransportSE getHttpTransportSE() {
+        if (mHttpTransportSE == null) {
+            // 创建HttpTransportsSE对象
+            mHttpTransportSE = new HttpTransportSE("");//这里url传空，使用时必须传值
+            mHttpTransportSE.debug = true;
+        }
+        return mHttpTransportSE;
+    }
+
     /**
      * 解析响应数据
      *
@@ -119,7 +169,7 @@ public abstract class BasicRequest {
             JSONObject jsonObject = new JSONObject(response);
             boolean result = JSONParseUtil.getRequestResult(jsonObject);
             if (result) {
-                if (mParseType == LIST_PARSE_TYPE) {
+                if (mParseType == LIST_PARSE_TYPE) {// 列表解析类型数据解析
                     mResp.pageSum = JSONParseUtil.getPageTotal(jsonObject);
                     mResp.itemTotal = JSONParseUtil.getItemTotal(jsonObject);
                     JSONArray array = JSONParseUtil.getDatas(jsonObject);
@@ -133,7 +183,7 @@ public abstract class BasicRequest {
                         mHandler.sendMessage(msg);
                         return;
                     }
-                } else if (mParseType == OBJECT_PARSE_TYPE) {
+                } else if (mParseType == OBJECT_PARSE_TYPE) {// 对象解析类型数据解析
                     // 数据标识
                     String respId = mResp.respId;
                     // 数据类型
@@ -154,12 +204,12 @@ public abstract class BasicRequest {
                                     objectMessage));
                     mResp.respId = respId;
                     mResp.dataType = dataType;
-                } else if (mParseType == JSON_PARSE_TYPE) {
+                } else if (mParseType == JSON_PARSE_TYPE) {// JSON解析类型数据解析
                     msg.what = MessageType.REQ_SUCCESS;
                     msg.obj = jsonObject;
                     mHandler.sendMessage(msg);
                     return;
-                } else if (mParseType == RESULT_PARSE_TYPE) {
+                } else if (mParseType == RESULT_PARSE_TYPE) {// 结果解析类型数据解析
                     mResp.resultInfo = JSONParseUtil.getResultMsg(jsonObject)
                             .toString();
                 }

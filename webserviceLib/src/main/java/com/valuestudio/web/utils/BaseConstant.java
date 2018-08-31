@@ -7,34 +7,14 @@ public class BaseConstant {
      */
     public static final String HTTP_HEAD = "http://";
     /**
-     * 主机ip地址key
+     * 请求地址key
      */
-    public static final String KEY_HOST_IP = "host_ip";
-    /**
-     * 端口号key
-     */
-    public static final String KEY_HOST_PORT = "host_port";
-    /**
-     * 主机名称key
-     */
-    public static final String KEY_HOST_NAME = "host_name";
+    public static final String KEY_REQUEST_URL = "request_url";
     /**
      * 命名空间key
      */
     public static final String KEY_NAME_SPACE = "name_space";
     /****************************** web request key **********************************/
-    /**
-     * 每页记录数
-     */
-    public static final int PAGE_SIZE = 10;
-    /**
-     * 分页条件key
-     */
-    public static final String KEY_PAGE_STR = "pageStr";
-    /**
-     * 分页条件
-     */
-    public static final String KEY_PAGE_STR_FORMAT = "pageNo:%1s;pageSize:%2s;";
     /**
      * 请求服务端时报的流关闭的异常信息内容
      */

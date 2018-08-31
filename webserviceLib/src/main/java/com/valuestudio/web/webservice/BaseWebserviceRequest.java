@@ -10,13 +10,11 @@ import com.valuestudio.web.utils.BaseConstant;
 import com.valuestudio.web.utils.LogUtil;
 import com.valuestudio.web.utils.NetworkUtil;
 import com.valuestudio.web.utils.PropertiesUtil;
-import com.valuestudio.web.utils.SharedPrefsUtil;
 
 import org.json.JSONException;
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
-import org.ksoap2.transport.HttpTransportSE;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -35,14 +33,7 @@ import java.util.TreeSet;
  * @description WebService请求基类
  */
 public class BaseWebserviceRequest extends BasicRequest implements Runnable {
-    public static final String TAG = "BaseWebserviceRequest";
-    /**
-     * URL后缀
-     */
-    public static final String URL_SUFFIX = "/services/PhoneService";
-
     private static int VERSION = SoapEnvelope.VER11;
-    protected HttpTransportSE mHttpTransportSE;
     protected SoapSerializationEnvelope mEnvelope;
     /**
      * 方法名
@@ -96,8 +87,8 @@ public class BaseWebserviceRequest extends BasicRequest implements Runnable {
         this.mResp = baseResp;
         this.mEntityCls = entityCls;
         this.mParseType = parseType;
-        LogUtil.d(TAG, "========request begin========");
-        LogUtil.d(TAG, "request method=" + mMethodName);
+        LogUtil.d(LogUtil.TAG, "========request begin========");
+        LogUtil.d(LogUtil.TAG, "request method=" + mMethodName);
     }
 
     /**
@@ -109,14 +100,14 @@ public class BaseWebserviceRequest extends BasicRequest implements Runnable {
     public SoapObject setProperty(SoapObject soapObject) {
         try {
             Map<String, Map<String, String>> paramsIndexMap = injectParamsMap();
-            // 5.参数排序后进行遍历
+            // 封装参数5.参数排序后进行遍历
             TreeSet<String> indexTreeSet = new TreeSet<String>(
                     new IndexComparator());
             indexTreeSet.addAll(paramsIndexMap.keySet());
             Iterator<String> iterator = indexTreeSet.iterator();
             while (iterator.hasNext()) {
                 String indexKey = iterator.next();
-                // 6.获取<参数名称, 参数值>键值对，此时map中仅有一对
+                // 封装参数6.获取<参数名称, 参数值>键值对，此时map中仅有一对
                 Map<String, String> paramMap = paramsIndexMap.get(indexKey);
                 Iterator<String> paramIterator = paramMap.keySet().iterator();
                 String nameKey = paramIterator.next();
@@ -154,30 +145,25 @@ public class BaseWebserviceRequest extends BasicRequest implements Runnable {
                     // 获得该成员的annotation
                     InjectReqParam reqParam = field
                             .getAnnotation(InjectReqParam.class);
-                    // 1.通过注解获得该参数的顺序
+                    // 封装参数1.通过注解获得该参数的顺序
                     int index = reqParam.index();
                     if (index <= 0) {
                         continue;
                     }
-                    // 2.通过注解获得该参数的名称
+                    // 封装参数2.通过注解获得该参数的名称
                     String name = reqParam.name();
                     // 如果没有设置name则默认变量名为参数名称
                     if (TextUtils.isEmpty(name)) {
                         name = field.getName();
                     }
-                    // 3.获取参数值
+                    // 封装参数3.获取参数值
                     field.setAccessible(true);
                     Object object = field.get(mReqParams);
                     String value = null;
                     if (object != null) {
                         value = object.toString();
                     }
-                    // 如果参数名称为currPageNum则单独封装页数的请求参数值
-                    if (name.contains("currPageNum")) {
-                        value = String.format(BaseConstant.KEY_PAGE_STR_FORMAT,
-                                value, BaseConstant.PAGE_SIZE);
-                    }
-                    // 4.存储参数
+                    // 封装参数4.存储参数
                     Map<String, String> paramMap = new HashMap<String, String>();
                     paramMap.put(name, value);
                     paramsIndexMap.put(String.valueOf(index), paramMap);
@@ -191,11 +177,11 @@ public class BaseWebserviceRequest extends BasicRequest implements Runnable {
      * 封装请求
      */
     protected void getRequest() {
-        // 1.制定命名空间和调用方法
+        // 请求1.制定命名空间和调用方法
         SoapObject soapObject = new SoapObject(getNameSpace(), mMethodName);
-        // 2.设置方法参数（设置方法参数时确保与服务端WebService类中的方法参数顺序一致）
+        // 请求2.设置方法参数（设置方法参数时确保与服务端WebService类中的方法参数顺序一致）
         soapObject = setProperty(soapObject);
-        // 打印请求条件，发布时删除
+        // 打印请求参数，发布时删除
         StringBuffer buff = new StringBuffer();
         for (int index = 0; index < soapObject.getPropertyCount(); index++) {
             Object property = soapObject.getProperty(index);
@@ -204,14 +190,30 @@ public class BaseWebserviceRequest extends BasicRequest implements Runnable {
                         .append("};");
             }
         }
-        LogUtil.i(TAG, "property=" + buff.toString());
-        // 3.SOAP请求信息，保证版本号与服务端的一致
+        LogUtil.i(LogUtil.TAG, "property=" + buff.toString());
+        // 请求3.SOAP请求信息，保证版本号与服务端的一致
         mEnvelope = new SoapSerializationEnvelope(VERSION);
-        // mEnvelope.dotNet = true;// 3G代理服务时此选项不可设置为true
+        // mEnvelope.dotNet = true;// 默认为false，如果是访问.NET的webservice服务，这里需要设置为true
         mEnvelope.bodyOut = soapObject;
-        // 4.创建HttpTransportsSE对象
-        mHttpTransportSE = new HttpTransportSE(getUrl());
-        mHttpTransportSE.debug = true;
+        // 请求3.设置请求url
+        getHttpTransportSE().setUrl(getUrl());
+    }
+
+    /**
+     * 封装url
+     *
+     * @return
+     */
+    protected String getUrl() {
+        // 获取请求地址
+        String requestUrl = PropertiesUtil.getInstance(mContext)
+                .getProperty(BaseConstant.KEY_REQUEST_URL, "").trim();
+        // 判断地址中是否有http头，没有则添加
+        if (!requestUrl.startsWith(BaseConstant.HTTP_HEAD)) {
+            requestUrl = BaseConstant.HTTP_HEAD + requestUrl;
+        }
+        LogUtil.d(LogUtil.TAG, "request url:" + requestUrl);
+        return requestUrl;
     }
 
     /**
@@ -229,44 +231,6 @@ public class BaseWebserviceRequest extends BasicRequest implements Runnable {
     }
 
     /**
-     * 封装url
-     *
-     * @return
-     */
-    protected String getUrl() {
-        // 获取主机地址
-        String hostIp = PropertiesUtil.getInstance(mContext)
-                .getProperty(BaseConstant.KEY_HOST_IP, "").trim();
-        hostIp = SharedPrefsUtil.getValue(mContext, BaseConstant.KEY_HOST_IP,
-                hostIp);
-        // 判断地址中是否有http头，没有则添加
-        if (!hostIp.startsWith(BaseConstant.HTTP_HEAD)) {
-            hostIp = BaseConstant.HTTP_HEAD + hostIp;
-        }
-        // 获取端口号
-        String hostPort = PropertiesUtil.getInstance(mContext)
-                .getProperty(BaseConstant.KEY_HOST_PORT, "").trim();
-        hostPort = SharedPrefsUtil.getValue(mContext,
-                BaseConstant.KEY_HOST_PORT, hostPort);
-        // 获取主机名称
-        String hostName = PropertiesUtil.getInstance(mContext)
-                .getProperty(BaseConstant.KEY_HOST_NAME, "").trim();
-        hostName = SharedPrefsUtil.getValue(mContext,
-                BaseConstant.KEY_HOST_NAME, hostName);
-        // 封装url
-        // http://10.10.0.212
-        String url = hostIp;
-        // http://10.10.0.212:8080
-        if (!TextUtils.isEmpty(hostPort)) {
-            url = url + ":" + hostPort;
-        }
-        // http://10.10.0.212:8080/test/services/PhoneService
-        url = url + "/" + hostName + URL_SUFFIX;
-        LogUtil.d(TAG, "request url:" + url);
-        return url;
-    }
-
-    /**
      * 发送请求
      */
     public void sendRequest() {
@@ -275,6 +239,7 @@ public class BaseWebserviceRequest extends BasicRequest implements Runnable {
 
         // 判断网络是否连接
         if (NetworkUtil.isNetworkConnected(mContext)) {
+            // 请求5.添加请求到线程池
             ThreadPool.getInstance().addTask(this);
         } else {
             Message msg = new Message();
@@ -293,8 +258,8 @@ public class BaseWebserviceRequest extends BasicRequest implements Runnable {
      */
     public void cancelRequests() {
         hasCancel = true;
-        LogUtil.d(TAG, mMethodName + " canceled");
-        LogUtil.d(TAG, "========request end========");
+        LogUtil.d(LogUtil.TAG, mMethodName + " canceled");
+        LogUtil.d(LogUtil.TAG, "========request end========");
     }
 
     @Override
@@ -308,8 +273,8 @@ public class BaseWebserviceRequest extends BasicRequest implements Runnable {
             }
             Object response = mEnvelope.getResponse();
             if (response != null) {
-                LogUtil.i(TAG, method + " request resp=" + response.toString());
-                LogUtil.d(TAG, "========request end========");
+                LogUtil.i(LogUtil.TAG, method + " request resp=" + response.toString());
+                LogUtil.d(LogUtil.TAG, "========request end========");
                 parseRespData(response.toString());
             } else {
                 parseRespData(null);
@@ -334,7 +299,7 @@ public class BaseWebserviceRequest extends BasicRequest implements Runnable {
             msg.what = MessageType.REQ_SERVER_ERROR;
             msg.obj = mContext.getString(R.string.request_connect_error_msg);
             mHandler.sendMessage(msg);
-            LogUtil.d(TAG, e.getMessage());
+            LogUtil.d(LogUtil.TAG, e.getMessage());
         } catch (IOException e) {
             // 如果已经取消请求则不进行数据的解析和返回
             if (hasCancel) {
@@ -359,7 +324,7 @@ public class BaseWebserviceRequest extends BasicRequest implements Runnable {
                     msg.obj = mContext
                             .getString(R.string.request_connect_error_msg);
                 }
-                LogUtil.d(TAG, errorinfo);
+                LogUtil.d(LogUtil.TAG, errorinfo);
             } else {// 其它系统错误
                 msg.obj = mContext.getString(R.string.request_server_error_msg);
             }
@@ -371,7 +336,7 @@ public class BaseWebserviceRequest extends BasicRequest implements Runnable {
             msg.what = MessageType.REQ_PARSE_ERROR;
             msg.obj = mContext.getString(R.string.request_parse_error_msg);
             mHandler.sendMessage(msg);
-            LogUtil.d(TAG, e.getMessage());
+            LogUtil.d(LogUtil.TAG, e.getMessage());
         } catch (XmlPullParserException e) {
             e.printStackTrace();
             // 解析错误
@@ -379,7 +344,7 @@ public class BaseWebserviceRequest extends BasicRequest implements Runnable {
             msg.what = MessageType.REQ_PARSE_ERROR;
             msg.obj = mContext.getString(R.string.request_parse_error_msg);
             mHandler.sendMessage(msg);
-            LogUtil.d(TAG, e.getMessage());
+            LogUtil.d(LogUtil.TAG, e.getMessage());
         } catch (IllegalArgumentException e) {
             Message msg = new Message();
             msg.what = MessageType.REQ_SERVER_ERROR;
@@ -390,14 +355,14 @@ public class BaseWebserviceRequest extends BasicRequest implements Runnable {
                 msg.obj = mContext.getString(R.string.request_server_error_msg);
             }
             mHandler.sendMessage(msg);
-            LogUtil.d(TAG, e.getMessage());
+            LogUtil.d(LogUtil.TAG, e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             Message msg = new Message();
             msg.what = MessageType.REQ_SERVER_ERROR;
             msg.obj = mContext.getString(R.string.request_server_error_msg);
             mHandler.sendMessage(msg);
-            LogUtil.d(TAG, e.getMessage());
+            LogUtil.d(LogUtil.TAG, e.getMessage());
         }
     }
 
