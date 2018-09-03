@@ -92,37 +92,6 @@ public class BaseWebserviceRequest extends BasicRequest implements Runnable {
     }
 
     /**
-     * 设置请求参数
-     *
-     * @param soapObject
-     * @return
-     */
-    public SoapObject setProperty(SoapObject soapObject) {
-        try {
-            Map<String, Map<String, String>> paramsIndexMap = injectParamsMap();
-            // 封装参数5.参数排序后进行遍历
-            TreeSet<String> indexTreeSet = new TreeSet<String>(
-                    new IndexComparator());
-            indexTreeSet.addAll(paramsIndexMap.keySet());
-            Iterator<String> iterator = indexTreeSet.iterator();
-            while (iterator.hasNext()) {
-                String indexKey = iterator.next();
-                // 封装参数6.获取<参数名称, 参数值>键值对，此时map中仅有一对
-                Map<String, String> paramMap = paramsIndexMap.get(indexKey);
-                Iterator<String> paramIterator = paramMap.keySet().iterator();
-                String nameKey = paramIterator.next();
-                String value = paramMap.get(nameKey);
-                soapObject.addProperty(nameKey, value);
-            }
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-        return soapObject;
-    }
-
-    /**
      * 通过注解反射参数顺序和名称
      *
      * @return
@@ -171,6 +140,37 @@ public class BaseWebserviceRequest extends BasicRequest implements Runnable {
             }
         }
         return paramsIndexMap;
+    }
+
+    /**
+     * 设置webservice请求参数
+     *
+     * @param soapObject
+     * @return
+     */
+    public SoapObject setProperty(SoapObject soapObject) {
+        try {
+            Map<String, Map<String, String>> paramsIndexMap = injectParamsMap();
+            // 封装参数5.参数排序后进行遍历
+            TreeSet<String> indexTreeSet = new TreeSet<String>(
+                    new IndexComparator());
+            indexTreeSet.addAll(paramsIndexMap.keySet());// 把参数顺序值放在TreeSet中进行排序
+            Iterator<String> iterator = indexTreeSet.iterator();
+            while (iterator.hasNext()) {
+                String indexKey = iterator.next();
+                // 封装参数6.获取<参数名称, 参数值>键值对，此时map中仅有一对
+                Map<String, String> paramMap = paramsIndexMap.get(indexKey);
+                Iterator<String> paramIterator = paramMap.keySet().iterator();
+                String nameKey = paramIterator.next();
+                String value = paramMap.get(nameKey);
+                soapObject.addProperty(nameKey, value);
+            }
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return soapObject;
     }
 
     /**

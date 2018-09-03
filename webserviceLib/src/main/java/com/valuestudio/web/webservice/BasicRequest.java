@@ -150,7 +150,7 @@ public abstract class BasicRequest {
     public static synchronized HttpTransportSE getHttpTransportSE() {
         if (mHttpTransportSE == null) {
             // 创建HttpTransportsSE对象
-            mHttpTransportSE = new HttpTransportSE("");//这里url传空，使用时必须传值
+            mHttpTransportSE = new HttpTransportSE("");//这里只使用http请求
             mHttpTransportSE.debug = true;
         }
         return mHttpTransportSE;

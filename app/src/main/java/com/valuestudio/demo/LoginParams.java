@@ -7,7 +7,6 @@ import com.valuestudio.web.webservice.InjectReqParam;
 /**
  * 登录参数类
  */
-
 public class LoginParams extends BaseReqParams {
 
     @InjectReqParam(index = 1)

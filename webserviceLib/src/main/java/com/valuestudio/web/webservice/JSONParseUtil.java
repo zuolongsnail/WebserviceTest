@@ -143,66 +143,66 @@ public class JSONParseUtil {
         return jsonObject.get(MESSAGE);
     }
 
-    /**
-     * 解析后通过反射赋值到对象
-     *
-     * @param clazz
-     * @param jsonObj
-     * @return
-     * @throws Exception
-     */
-    public static Object reflectObject(Class clazz, JSONObject jsonObj)
-            throws JSONException, IllegalAccessException,
-            InstantiationException {
-        Object instance = clazz.newInstance();
-        Field[] fields = clazz.getDeclaredFields();
-        String attribute = null;
-        for (Field field : fields) {
-            attribute = field.getName();
-            // 判断返回数据中是否含有相对字段并且不为“null”
-            if (jsonObj.has(attribute) && !jsonObj.isNull(attribute)) {
-                String value = jsonObj.get(attribute).toString();
-                if (TextUtils.isEmpty(value)) {
-                    field.set(instance, "");
-                    continue;
-                }
-                if (field.getType() == int.class) {
-                    field.setInt(instance, Integer.parseInt(value));
-                } else if (field.getType() == float.class) {
-                    field.setFloat(instance, Float.parseFloat(value));
-                } else if (field.getType() == double.class) {
-                    field.setDouble(instance, Double.parseDouble(value));
-                } else if (field.getType() == long.class) {
-                    field.setLong(instance, Long.parseLong(value));
-                } else if (field.getType() == boolean.class) {
-                    field.setBoolean(instance, Boolean.parseBoolean(value));
-                } else if (field.getType() == JSONArray.class) {
-                    field.set(instance, new JSONArray(value));
-                } else {
-                    field.set(instance, field.getType().cast(value));
-                }
+/**
+ * 解析后通过反射赋值到对象
+ *
+ * @param clazz
+ * @param jsonObj
+ * @return
+ * @throws Exception
+ */
+public static Object reflectObject(Class clazz, JSONObject jsonObj)
+        throws JSONException, IllegalAccessException,
+        InstantiationException {
+    Object instance = clazz.newInstance();
+    Field[] fields = clazz.getDeclaredFields();
+    String attribute = null;
+    for (Field field : fields) {
+        attribute = field.getName();
+        // 判断返回数据中是否含有相对字段并且不为“null”
+        if (jsonObj.has(attribute) && !jsonObj.isNull(attribute)) {
+            String value = jsonObj.get(attribute).toString();
+            if (TextUtils.isEmpty(value)) {
+                field.set(instance, "");
+                continue;
+            }
+            if (field.getType() == int.class) {
+                field.setInt(instance, Integer.parseInt(value));
+            } else if (field.getType() == float.class) {
+                field.setFloat(instance, Float.parseFloat(value));
+            } else if (field.getType() == double.class) {
+                field.setDouble(instance, Double.parseDouble(value));
+            } else if (field.getType() == long.class) {
+                field.setLong(instance, Long.parseLong(value));
+            } else if (field.getType() == boolean.class) {
+                field.setBoolean(instance, Boolean.parseBoolean(value));
+            } else if (field.getType() == JSONArray.class) {
+                field.set(instance, new JSONArray(value));
             } else {
-                if (!attribute.equals("serialVersionUID")) {// 过滤序列号类中的serialVersionUID字段
-                    if (field.getType() == int.class) {
-                        field.setInt(instance, 0);
-                    } else if (field.getType() == float.class) {
-                        field.setFloat(instance, 0);
-                    } else if (field.getType() == double.class) {
-                        field.setDouble(instance, 0);
-                    } else if (field.getType() == long.class) {
-                        field.setLong(instance, 0);
-                    } else if (field.getType() == boolean.class) {
-                        field.setBoolean(instance, false);
-                    } else if (field.getType() == String.class) {
-                        field.set(instance, "");
-                    } else {
-                        field.set(instance, null);
-                    }
+                field.set(instance, field.getType().cast(value));
+            }
+        } else {
+            if (!attribute.equals("serialVersionUID")) {// 过滤序列号类中的serialVersionUID字段
+                if (field.getType() == int.class) {
+                    field.setInt(instance, 0);
+                } else if (field.getType() == float.class) {
+                    field.setFloat(instance, 0);
+                } else if (field.getType() == double.class) {
+                    field.setDouble(instance, 0);
+                } else if (field.getType() == long.class) {
+                    field.setLong(instance, 0);
+                } else if (field.getType() == boolean.class) {
+                    field.setBoolean(instance, false);
+                } else if (field.getType() == String.class) {
+                    field.set(instance, "");
+                } else {
+                    field.set(instance, null);
                 }
             }
         }
-        return instance;
     }
+    return instance;
+}
 
     /**
      * 字符串转整数
